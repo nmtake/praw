@@ -3,7 +3,9 @@ from json import dumps
 
 from ..const import API_PATH
 from .base import PRAWBase
+from .reddit.live import LiveThread
 from .reddit.multi import Multireddit, Subreddit
+from prawcore.exceptions import NotFound
 
 
 class LiveHelper(PRAWBase):
@@ -24,6 +26,29 @@ class LiveHelper(PRAWBase):
         return self._reddit.post(API_PATH['livecreate'], data={
             'description': description, 'nsfw': nsfw, 'resources': resources,
             'title': title})
+
+    def happening_now(self):
+        """Return currently featured live thread.
+
+        :returns: A :class:`~.LiveThread` object which represents currently
+            featured live thread. Return ``None`` if such thread does not
+            exist.
+
+        """
+        try:
+            return self._reddit.get(API_PATH['live_happening_now'])
+        # /live/happening_now returns 404 if no featured
+        except NotFound:
+            return None
+
+    def thread(self, thread_id):
+        """Return a live thread for a given live thread ID.
+
+        :param id: A live thread ID, e.g.,``ukaeu1ik4sw5``.
+        :returns: A class:`~.LiveThread` instance.
+
+        """
+        return LiveThread(self._reddit, thread_id=thread_id)
 
 
 class MultiredditHelper(PRAWBase):
